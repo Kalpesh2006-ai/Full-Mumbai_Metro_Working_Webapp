@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inclusive Metro Accessibility — Mumbai Metro Line 9</title>
+  <style>
+    :root{--bg:#f5f7fb;--card:#fff;--accent:#0b2540;--muted:#6b7280}
+    body{font-family:Inter, system-ui, Arial, sans-serif;background:var(--bg);color:var(--accent);margin:0}
+    header{padding:28px 16px;text-align:center}
+    h1{margin:0;font-size:28px}
+    .controls{display:flex;gap:8px;justify-content:center;margin:14px 8px;flex-wrap:wrap}
+    .btn{background:var(--accent);color:#fff;border-radius:24px;padding:8px 14px;border:none;cursor:pointer}
+    .toggle{background:#fff;border:1px solid #ddd;padding:6px 10px;border-radius:8px;cursor:pointer}
+    main{max-width:1100px;margin:20px auto;padding:8px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .card{background:var(--card);padding:22px;border-radius:12px;box-shadow:0 6px 16px rgba(11,37,64,0.06);min-height:120px}
+    .card h3{margin:8px 0 6px;font-size:16px}
+    .card p{margin:0;color:var(--muted);font-size:13px}
+    .learn{margin-top:12px;background:#071223;color:#fff;padding:8px 12px;border-radius:20px;border:none}
+    /* responsive */
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.grid{grid-template-columns:1fr}}
+    /* accessibility helpers */
+    .high-contrast{background:#000;color:#fff}
+    .large-text{font-size:18px}
+    /* station list */
+    .route{margin-top:22px;background:var(--card);padding:16px;border-radius:10px}
+    .station{padding:10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
+    .station:last-child{border-bottom:none}
+    .searchbar{display:flex;gap:8px;align-items:center;justify-content:center;margin:12px}
+    .searchbar input{padding:8px 10px;border-radius:8px;border:1px solid #ddd;width:320px}
+    .mic{background:#fff;border:1px solid #ddd;padding:10px;border-radius:50%;cursor:pointer}
+    .lang-select{padding:8px;border-radius:8px;border:1px solid #ddd}
+    footer{text-align:center;padding:18px;color:var(--muted)}
+    pre.server{background:#f3f4f6;padding:12px;border-radius:8px;overflow:auto}
+  </style>
+</head>
+<body>
+  <header role="banner">
+    <h1 id="title">Inclusive Metro Accessibility Interface</h1>
+    <div class="controls" role="region" aria-label="Accessibility controls">
+      <button class="btn" id="highContrastBtn">Toggle High Contrast</button>
+      <button class="btn" id="largeTextBtn">Toggle Large Text</button>
+      <select id="lang" class="lang-select" aria-label="Select language">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="mr">मराठी</option>
+      </select>
+      <button class="toggle" id="voiceHelp">Voice Search</button>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <section class="grid" aria-label="Accessibility features">
+      <article class="card" tabindex="0">
+        <div style="text-align:center;font-size:22px">🎤</div>
+        <h3 id="card1">Voice-Enabled App</h3>
+        <p id="card1desc">Get metro info using voice commands for easy accessibility.</p>
+        <button class="learn" onclick="openFeature('voice')">Learn More</button>
+      </article>
+
+      <article class="card" tabindex="0">
+        <div style="text-align:center;font-size:22px">🗺️</div>
+        <h3 id="card2">Tactile & Braille Maps</h3>
+        <p id="card2desc">Raised-line station maps for visually impaired commuters.</p>
+        <button class="learn" onclick="openFeature('maps')">Learn More</button>
+      </article>
+
+      <article class="card" tabindex="0">
+        <div style="text-align:center;font-size:22px">🌐</div>
+        <h3 id="card3">Multilingual Platform</h3>
+        <p id="card3desc">Information available in Marathi, Hindi, and English.</p>
+        <button class="learn" onclick="openFeature('lang')">Learn More</button>
+      </article>
+
+      <article class="card" tabindex="0">
+        <div style="text-align:center;font-size:22px">💡</div>
+        <h3 id="card4">Simplified UI</h3>
+        <p id="card4desc">Minimal, icon-based interface for low digital literacy users.</p>
+        <button class="learn" onclick="openFeature('ui')">Learn More</button>
+      </article>
+
+      <article class="card" tabindex="0">
+        <div style="text-align:center;font-size:22px">🏧</div>
+        <h3 id="card5">Digital Assistance Kiosks</h3>
+        <p id="card5desc">Help kiosks for route guidance, tickets & navigation.</p>
+        <button class="learn" onclick="openFeature('kiosk')">Learn More</button>
+      </article>
+
+      <article class="card" tabindex="0">
+        <div style="text-align:center;font-size:22px">📣</div>
+        <h3 id="card6">Awareness Programs</h3>
+        <p id="card6desc">Training to help commuters use digital tools confidently.</p>
+        <button class="learn" onclick="openFeature('awareness')">Learn More</button>
+      </article>
+    </section>
+
+    <!-- Search & route -->
+    <div class="searchbar" role="search">
+      <input id="search" placeholder="Search stations or type 'next from Dahisar'" aria-label="Search stations" />
+      <button class="mic" id="micBtn" title="Start voice input" aria-label="Start voice input">🎙️</button>
+      <button class="toggle" onclick="resetFilter()">Reset</button>
+    </div>
+
+    <section class="route" aria-label="Metro Line 9 Route Information">
+      <h2 id="routeTitle">Mumbai Metro Line 9 — Dahisar (E) to Mira-Bhayandar</h2>
+      <div id="stations" role="list"></div>
+    </section>
+  </main>
+
+  <footer role="contentinfo">
+    <small>Data shown is based on official project information. Use for demo / planning purposes only.</small>
+  </footer>
+
+  <script>
+    // attempt to fetch stations from backend, fall back to embedded list if not available
+    let stations = [
+      {id:1,name:{en:'Dahisar (East)',hi:'दहिसर (पूर्व)',mr:'दहिसार (पूर्व)'}},
+      {id:2,name:{en:'Pandurang Wadi',hi:'पांडुरंग वाडी',mr:'पांडुरंग वाडी'}},
+      {id:3,name:{en:'Miragaon',hi:'मीरा गाँव',mr:'मीरा गाँव'}},
+      {id:4,name:{en:'Kashigaon',hi:'काशीगाव',mr:'काशीगाव'}},
+      {id:5,name:{en:'Sai Baba Nagar',hi:'साईबाबा नगर',mr:'साईं बाबा नगर'}},
+      {id:6,name:{en:'Meditiya (Deepak Hospital)',hi:'मेदितिया (डीपक हॉस्पिटल)',mr:'मेदित्य (डीपक रुग्णालय)'}},
+      {id:7,name:{en:'Shahid Bhagat Singh Garden',hi:'शहीद भगत सिंग बगीचा',mr:'शहीद भगत सिंग बाग'}},
+      {id:8,name:{en:'Subhash Chandra Bose Stadium',hi:'सुभाष चंद्र बोस स्टेडियम',mr:'सुभाष चंद्र बोस स्टेडियम'}}
+    ];
+
+    const stationsEl = document.getElementById('stations');
+    const langSel = document.getElementById('lang');
+
+    async function loadStations(){
+      try{
+        const res = await fetch('/api/stations');
+        if(res.ok){
+          const data = await res.json();
+          stations = data.stations;
+        }
+      }catch(e){ console.log('no backend found, using local data'); }
+      renderList('');
+    }
+
+    function renderList(filter = ''){
+      stationsEl.innerHTML = '';
+      const q = filter.trim().toLowerCase();
+      const list = stations.filter(s => s.name.en.toLowerCase().includes(q) || s.name.hi.toLowerCase().includes(q) || s.name.mr.toLowerCase().includes(q));
+      if(list.length === 0){ stationsEl.innerHTML = '<div style="padding:12px;color:#666">No stations found.</div>'; return }
+      list.forEach(s=>{
+        const div = document.createElement('div'); div.className='station'; div.setAttribute('role','listitem');
+        div.innerHTML = `<div><strong>#${s.id}</strong> <span class="st-name">${s.name[langSel.value]}</span></div><div><button onclick=showNext(${s.id}) aria-label='Next train'>Next</button></div>`;
+        div.tabIndex = 0;
+        div.addEventListener('click',(ev)=>{ if(ev.target.tagName.toLowerCase()!=='button') announceStation(s); });
+        stationsEl.appendChild(div);
+      });
+    }
+
+    function announceStation(s){
+      const text = (langSel.value==='en') ? `Station ${s.id} ${s.name.en}` : s.name[langSel.value];
+      speak(text);
+      alert(text);
+    }
+
+    // fetch next-train ETA from backend (simulated)
+    async function showNext(id){
+      try{
+        const res = await fetch(`/api/next?from=${id}`);
+        if(res.ok){
+          const data = await res.json();
+          const text = (langSel.value==='en') ? `Next train from station ${id} in ${data.etaMinutes} minutes` : `${data.etaMinutes} मिनिटात ट्रेन`; // simplified
+          speak(text);
+          alert(text);
+          return;
+        }
+      }catch(e){/* ignore */}
+      alert('Next-train data unavailable (no backend).');
+    }
+
+    function speak(text){
+      if(!('speechSynthesis' in window)) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = (langSel.value==='hi')?'hi-IN':(langSel.value==='mr')?'mr-IN':'en-IN';
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }
+
+    // voice recognition
+    const micBtn = document.getElementById('micBtn');
+    let recognition;
+    if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR();
+      recognition.lang = 'en-IN';
+      recognition.onresult = e=>{
+        const text = e.results[0][0].transcript;
+        document.getElementById('search').value = text;
+        renderList(text);
+      }
+      recognition.onerror = e=>{ console.log('voice error', e); }
+    } else {
+      micBtn.title = 'Voice not supported in this browser';
+    }
+
+    micBtn.addEventListener('click',()=>{
+      if(!recognition) return alert('Voice recognition not supported in this browser. Use Chrome mobile/desktop for best support.');
+      recognition.start();
+    });
+
+    // language switch
+    langSel.addEventListener('change', ()=>{
+      const map = {
+        en:{title:'Inclusive Metro Accessibility Interface', route:'Mumbai Metro Line 9 — Dahisar (E) to Mira-Bhayandar', search:'Search stations or type \'next from Dahisar\''},
+        hi:{title:'समावेशी मेट्रो प्रवेश इंटरफेस', route:'मुंबई मेट्रो लाइन 9 — दहिसर (पूर्व) से मीरा-भाएंदर', search:'स्टेशन्स खोजें'} ,
+        mr:{title:'समाविष्ट मेट्रो प्रवेश इंटरफेस', route:'मुंबई मेट्रो लाईन 9 — दहिसर (पूर्व) ते मीरा-भयंदर', search:'स्टेशन्स शोधा'}
+      };
+      document.getElementById('title').textContent = map[langSel.value].title;
+      document.getElementById('routeTitle').textContent = map[langSel.value].route;
+      document.getElementById('search').placeholder = map[langSel.value].search;
+      renderList(document.getElementById('search').value);
+    });
+
+    // accessibility toggles
+    document.getElementById('highContrastBtn').addEventListener('click', ()=>{
+      document.body.classList.toggle('high-contrast');
+    });
+    document.getElementById('largeTextBtn').addEventListener('click', ()=>{
+      document.body.classList.toggle('large-text');
+    });
+
+    document.getElementById('search').addEventListener('input', (e)=> renderList(e.target.value));
+    function resetFilter(){ document.getElementById('search').value=''; renderList(''); }
+
+    // feature modal rough implementations
+    function openFeature(key){
+      const titles = {voice:'Voice-Enabled App','maps':'Tactile & Braille Maps',lang:'Multilingual Platform',ui:'Simplified UI',kiosk:'Digital Assistance Kiosks',awareness:'Awareness Programs'};
+      const desc = {
+        voice:'Use your voice to search stations, get next-train info and navigate the app. Works with browser TTS & SpeechRecognition.',
+        maps:'Provide tactile maps at stations and raise-line diagrams for onboard navigation. Coordinate with disability groups for testing.',
+        lang:'Content is available in English, Hindi & Marathi. Use short, plain language and icons for low literacy users.',
+        ui:'Use icon-driven flows, large buttons, and single-tap ticketing to help users with low digital literacy.',
+        kiosk:'Kiosks should support audio prompts, physical buttons, and staff help for ticketing and route guidance.',
+        awareness:'Run on-ground workshops in local communities teaching basic app use, ticket purchase, and safety.'
+      };
+      // fixed alert concatenation to avoid multiline literal issues
+      alert(titles[key] + ' ' + desc[key]);
+    }
+
+    // enter key reads first match
+    document.getElementById('search').addEventListener('keydown',(e)=>{
+      if(e.key==='Enter'){
+        const q = e.target.value.trim().toLowerCase();
+        const found = stations.find(s=>s.name.en.toLowerCase().includes(q) || s.name.hi.toLowerCase().includes(q));
+        if(found) announceStation(found);
+      }
+    });
+
+    // init
+    loadStations();
+  </script>
+</body>
+</html>
