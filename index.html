@@ -122,7 +122,7 @@
     // Load stations from local JSON (works on GitHub Pages)
     async function loadStations(){
       try{
-        const res = await fetch('./data/stations.json');
+        const res = await fetch('station.json');
         if(res.ok){
           const data = await res.json();
           stations = data.stations || [];
@@ -131,7 +131,7 @@
           loadFallback();
         }
       }catch(e){
-        console.warn('Failed to load stations.json, using fallback', e);
+        console.warn('Failed to load station.json, using fallback', e);
         loadFallback();
       }
       renderList('');
@@ -271,3 +271,4 @@
   </script>
 </body>
 </html>
+
