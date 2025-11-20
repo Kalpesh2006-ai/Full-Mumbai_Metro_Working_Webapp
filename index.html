@@ -18,13 +18,10 @@
     .card h3{margin:8px 0 6px;font-size:16px}
     .card p{margin:0;color:var(--muted);font-size:13px}
     .learn{margin-top:12px;background:#071223;color:#fff;padding:8px 12px;border-radius:20px;border:none}
-    /* responsive */
     @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:600px){.grid{grid-template-columns:1fr}}
-    /* accessibility helpers */
     .high-contrast{background:#000;color:#fff}
     .large-text{font-size:18px}
-    /* station list */
     .route{margin-top:22px;background:var(--card);padding:16px;border-radius:10px}
     .station{padding:10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
     .station:last-child{border-bottom:none}
@@ -34,6 +31,7 @@
     .lang-select{padding:8px;border-radius:8px;border:1px solid #ddd}
     footer{text-align:center;padding:18px;color:var(--muted)}
     pre.server{background:#f3f4f6;padding:12px;border-radius:8px;overflow:auto}
+    button.small {padding:4px 8px;border-radius:4px;border:1px solid #ccc;background:#fff;cursor:pointer}
   </style>
 </head>
 <body>
@@ -107,74 +105,97 @@
       <h2 id="routeTitle">Mumbai Metro Line 9 — Dahisar (E) to Mira-Bhayandar</h2>
       <div id="stations" role="list"></div>
     </section>
+
   </main>
 
   <footer role="contentinfo">
-    <small>Data shown is based on official project information. Use for demo / planning purposes only.</small>
+    <small>Data shown is for demo purposes only.</small>
   </footer>
 
   <script>
-    // attempt to fetch stations from backend, fall back to embedded list if not available
-    let stations = [
-      {id:1,name:{en:'Dahisar (East)',hi:'दहिसर (पूर्व)',mr:'दहिसार (पूर्व)'}},
-      {id:2,name:{en:'Pandurang Wadi',hi:'पांडुरंग वाडी',mr:'पांडुरंग वाडी'}},
-      {id:3,name:{en:'Miragaon',hi:'मीरा गाँव',mr:'मीरा गाँव'}},
-      {id:4,name:{en:'Kashigaon',hi:'काशीगाव',mr:'काशीगाव'}},
-      {id:5,name:{en:'Sai Baba Nagar',hi:'साईबाबा नगर',mr:'साईं बाबा नगर'}},
-      {id:6,name:{en:'Meditiya (Deepak Hospital)',hi:'मेदितिया (डीपक हॉस्पिटल)',mr:'मेदित्य (डीपक रुग्णालय)'}},
-      {id:7,name:{en:'Shahid Bhagat Singh Garden',hi:'शहीद भगत सिंग बगीचा',mr:'शहीद भगत सिंग बाग'}},
-      {id:8,name:{en:'Subhash Chandra Bose Stadium',hi:'सुभाष चंद्र बोस स्टेडियम',mr:'सुभाष चंद्र बोस स्टेडियम'}}
-    ];
+    // Local stations placeholder (will be overridden by stations.json if available)
+    let stations = [];
 
     const stationsEl = document.getElementById('stations');
     const langSel = document.getElementById('lang');
 
+    // Load stations from local JSON (works on GitHub Pages)
     async function loadStations(){
       try{
-        const res = await fetch('/api/stations');
+        const res = await fetch('./data/stations.json');
         if(res.ok){
           const data = await res.json();
-          stations = data.stations;
+          stations = data.stations || [];
+        } else {
+          console.warn('stations.json not found, using fallback data');
+          loadFallback();
         }
-      }catch(e){ console.log('no backend found, using local data'); }
+      }catch(e){
+        console.warn('Failed to load stations.json, using fallback', e);
+        loadFallback();
+      }
       renderList('');
     }
 
+    function loadFallback(){
+      stations = [
+        {id:1,name:{en:'Dahisar (East)',hi:'दहिसर (पूर्व)',mr:'दहिसार (पूर्व)'}},
+        {id:2,name:{en:'Pandurang Wadi',hi:'पांडुरंग वाडी',mr:'पांडुरंग वाडी'}},
+        {id:3,name:{en:'Miragaon',hi:'मिरागोन',mr:'मिरागोन'}},
+        {id:4,name:{en:'Kashigaon',hi:'काशीगाव',mr:'काशीगाव'}},
+        {id:5,name:{en:'Sai Baba Nagar',hi:'साईबाबा नगर',mr:'साईं बाबा नगर'}},
+        {id:6,name:{en:'Meditiya (Deepak Hospital)',hi:'मेदितिया (डीपक हॉस्पिटल)',mr:'मेदित्य (डीपक रुग्णालय)'}},
+        {id:7,name:{en:'Shahid Bhagat Singh Garden',hi:'शहीद भगत सिंग बगीचा',mr:'शहीद भगत सिंग बाग'}},
+        {id:8,name:{en:'Subhash Chandra Bose Stadium',hi:'सुभाष चंद्र बोस स्टेडियम',mr:'सुभाष चंद्र बोस स्टेडियम'}}
+      ];
+    }
+
+    // Render stations list
     function renderList(filter = ''){
       stationsEl.innerHTML = '';
       const q = filter.trim().toLowerCase();
-      const list = stations.filter(s => s.name.en.toLowerCase().includes(q) || s.name.hi.toLowerCase().includes(q) || s.name.mr.toLowerCase().includes(q));
-      if(list.length === 0){ stationsEl.innerHTML = '<div style="padding:12px;color:#666">No stations found.</div>'; return }
+      const list = stations.filter(s => {
+        const en = (s.name.en||'').toLowerCase();
+        const hi = (s.name.hi||'').toLowerCase();
+        const mr = (s.name.mr||'').toLowerCase();
+        return en.includes(q) || hi.includes(q) || mr.includes(q);
+      });
+      if(list.length === 0){
+        stationsEl.innerHTML = '<div style="padding:12px;color:#666">No stations found.</div>';
+        return;
+      }
       list.forEach(s=>{
         const div = document.createElement('div'); div.className='station'; div.setAttribute('role','listitem');
-        div.innerHTML = `<div><strong>#${s.id}</strong> <span class="st-name">${s.name[langSel.value]}</span></div><div><button onclick=showNext(${s.id}) aria-label='Next train'>Next</button></div>`;
+        const stationName = s.name[langSel.value] || s.name.en;
+        div.innerHTML = `<div><strong>#${s.id}</strong> <span class="st-name">${stationName}</span></div><div><button class="small" onclick="showNext(${s.id})" aria-label="Next train">Next</button></div>`;
         div.tabIndex = 0;
         div.addEventListener('click',(ev)=>{ if(ev.target.tagName.toLowerCase()!=='button') announceStation(s); });
         stationsEl.appendChild(div);
       });
     }
 
+    // Speak + show station
     function announceStation(s){
       const text = (langSel.value==='en') ? `Station ${s.id} ${s.name.en}` : s.name[langSel.value];
       speak(text);
       alert(text);
     }
 
-    // fetch next-train ETA from backend (simulated)
-    async function showNext(id){
-      try{
-        const res = await fetch(`/api/next?from=${id}`);
-        if(res.ok){
-          const data = await res.json();
-          const text = (langSel.value==='en') ? `Next train from station ${id} in ${data.etaMinutes} minutes` : `${data.etaMinutes} मिनिटात ट्रेन`; // simplified
-          speak(text);
-          alert(text);
-          return;
-        }
-      }catch(e){/* ignore */}
-      alert('Next-train data unavailable (no backend).');
+    // Client-side ETA calculator (demo deterministic function)
+    function computeEtaForStation(id){
+      const now = Date.now();
+      return ((id * 7) + (Math.floor(now/60000) % 10));
     }
 
+    // showNext uses client-side ETA (no backend)
+    function showNext(id){
+      const eta = computeEtaForStation(id);
+      const text = (langSel.value==='en') ? `Next train from station ${id} in ${eta} minutes` : `${eta} मिनिटात ट्रेन`;
+      speak(text);
+      alert(text);
+    }
+
+    // TTS
     function speak(text){
       if(!('speechSynthesis' in window)) return;
       const u = new SpeechSynthesisUtterance(text);
@@ -183,7 +204,7 @@
       window.speechSynthesis.speak(u);
     }
 
-    // voice recognition
+    // Voice recognition (optional)
     const micBtn = document.getElementById('micBtn');
     let recognition;
     if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
@@ -199,16 +220,15 @@
     } else {
       micBtn.title = 'Voice not supported in this browser';
     }
-
     micBtn.addEventListener('click',()=>{
       if(!recognition) return alert('Voice recognition not supported in this browser. Use Chrome mobile/desktop for best support.');
       recognition.start();
     });
 
-    // language switch
+    // Language switch
     langSel.addEventListener('change', ()=>{
       const map = {
-        en:{title:'Inclusive Metro Accessibility Interface', route:'Mumbai Metro Line 9 — Dahisar (E) to Mira-Bhayandar', search:'Search stations or type \'next from Dahisar\''},
+        en:{title:'Inclusive Metro Accessibility Interface', route:'Mumbai Metro Line 9 — Dahisar (E) to Mira-Bhayandar', search:'Search stations or type \\'next from Dahisar\\''},
         hi:{title:'समावेशी मेट्रो प्रवेश इंटरफेस', route:'मुंबई मेट्रो लाइन 9 — दहिसर (पूर्व) से मीरा-भाएंदर', search:'स्टेशन्स खोजें'} ,
         mr:{title:'समाविष्ट मेट्रो प्रवेश इंटरफेस', route:'मुंबई मेट्रो लाईन 9 — दहिसर (पूर्व) ते मीरा-भयंदर', search:'स्टेशन्स शोधा'}
       };
@@ -218,18 +238,13 @@
       renderList(document.getElementById('search').value);
     });
 
-    // accessibility toggles
-    document.getElementById('highContrastBtn').addEventListener('click', ()=>{
-      document.body.classList.toggle('high-contrast');
-    });
-    document.getElementById('largeTextBtn').addEventListener('click', ()=>{
-      document.body.classList.toggle('large-text');
-    });
+    // Accessibility toggles
+    document.getElementById('highContrastBtn').addEventListener('click', ()=>{ document.body.classList.toggle('high-contrast'); });
+    document.getElementById('largeTextBtn').addEventListener('click', ()=>{ document.body.classList.toggle('large-text'); });
 
     document.getElementById('search').addEventListener('input', (e)=> renderList(e.target.value));
     function resetFilter(){ document.getElementById('search').value=''; renderList(''); }
 
-    // feature modal rough implementations
     function openFeature(key){
       const titles = {voice:'Voice-Enabled App','maps':'Tactile & Braille Maps',lang:'Multilingual Platform',ui:'Simplified UI',kiosk:'Digital Assistance Kiosks',awareness:'Awareness Programs'};
       const desc = {
@@ -240,11 +255,9 @@
         kiosk:'Kiosks should support audio prompts, physical buttons, and staff help for ticketing and route guidance.',
         awareness:'Run on-ground workshops in local communities teaching basic app use, ticket purchase, and safety.'
       };
-      // fixed alert concatenation to avoid multiline literal issues
-      alert(titles[key] + ' ' + desc[key]);
+      alert(titles[key] + "\n\n" + desc[key]);
     }
 
-    // enter key reads first match
     document.getElementById('search').addEventListener('keydown',(e)=>{
       if(e.key==='Enter'){
         const q = e.target.value.trim().toLowerCase();
